@@ -1,88 +1,89 @@
-var imageCards = [],
-    numberOfTries = 0,
+'use strict';
+
+var numberOfTries = 0,
     selectedImages = [],
     waitTime = 500,
     statusArea;
 
-function initialize() {
-    statusArea = document.getElementById("status-area");
+function randomSort() {
+    return 0.5 - Math.random();
+}
 
-    imageCards = [
-        "leafers-seed",
-        "leafers-seedling",
-        "leafers-sapling",
-        "leafers-tree",
-        "leafers-ultimate",
-        "marcimus",
-        "mr-pants",
-        "mr-pink",
-        "old-spice-man",
-        "robot_female_1"
+function initElement() {
+    statusArea = document.getElementById('status-area');
+
+    var imageCards = [
+        'leafers-seed',
+        'leafers-seedling',
+        'leafers-sapling',
+        'leafers-tree',
+        'leafers-ultimate',
+        'marcimus',
+        'mr-pants',
+        'mr-pink',
+        'old-spice-man',
+        'robot_female_1'
     ];
 
-    imageCards = imageCards.concat(imageCards);
+    imageCards = imageCards.concat(imageCards); // make double the card array
 
-    imageCards.sort(function () {
-        return 0.5 - Math.random();
-    });
+    imageCards.sort(randomSort);
 
-    for (var i = 0; i < imageCards.length; i++) {
-        var imageObjects = document.createElement("img");
-        imageObjects.src = "img/" + imageCards[i] + ".png";
-        imageObjects.title = imageCards[i];
-        imageObjects.alt = imageCards[i];
-        imageObjects.onclick = checkIt;
-        document.getElementById("game-area").appendChild(imageObjects);
+    var fragment = document.createDocumentFragment();
+
+    for (var index = 0, length = imageCards.length; index < length; index++) {
+        var current = imageCards[index];
+        var newImageCard = document.createElement('img');
+        newImageCard.src = 'img/' + current + '.png';
+        newImageCard.title = current;
+        newImageCard.alt = current;
+        newImageCard.addEventListener('click', check);
+        fragment.appendChild(newImageCard);
     }
+
+    document.getElementById('game-area').appendChild(fragment);
+}
+
+function init() {
+    initElement();
 
     setTimeout(function () {
-        for (var i = 0; i < document.images.length; i++) {
-            document.images[i].src = "img/leaf-green.png";
-            document.images[i].title = "leaf-green";
+        for (var index = 0, length = document.images.length; index < length; index++) {
+            var current = document.images[index];
+            current.src = 'img/leaf-green.png';
+            current.title = 'leaf-green';
         }
     }, waitTime * 4);
-
 }
 
-function checkIt() {
+function check() {
+    if (this.title != 'leaf-green' || this.title == 'open') return;
 
-    if (this.title != "leaf-green" || this.title == "open" || this.title == "opened") return;
+    if (selectedImages.length > 1) return;
 
-    if (selectedImages.length < 2) {
+    selectedImages.push(this);
 
-        selectedImages.push(this.alt);
+    this.src = 'img/' + this.alt + '.png';
+    this.title = 'open';
 
-        this.src = "img/" + this.alt + ".png";
-        this.title = "open";
+    if (selectedImages.length != 2) return;
 
-        if (selectedImages.length === 2) {
+    if (selectedImages[0].alt === selectedImages[1].alt) {
+        selectedImages[0].removeEventListener('click', check);
+        selectedImages[1].removeEventListener('click', check);
+        selectedImages = [];
+    } else {
+        setTimeout(function () {
+            selectedImages[0].src = 'img/leaf-green.png';
+            selectedImages[0].title = 'leaf-green';
+            selectedImages[1].src = 'img/leaf-green.png';
+            selectedImages[1].title = 'leaf-green';
+            selectedImages = [];
+        }, waitTime);
 
-            if (selectedImages[0] === selectedImages[1]) {
-
-                for (var i = 0; i < document.images.length; i++) {
-                    if (document.images[i].title == "open") {
-                        document.images[i].title = "opened";
-                    }
-                }
-                selectedImages = [];
-
-            } else {
-
-                setTimeout(function () {
-                    for (var i = 0; i < document.images.length; i++) {
-                        if (document.images[i].title == "open") {
-                            document.images[i].src = "img/leaf-green.png";
-                            document.images[i].title = "leaf-green";
-                        }
-                    }
-                    selectedImages = [];
-                }, waitTime);
-
-                numberOfTries++;
-                statusArea.innerText = "Try it " + numberOfTries + " times.";
-            }
-        }
+        numberOfTries++;
+        statusArea.innerText = 'Tried ' + numberOfTries + ' times.';
     }
 }
 
-window.onload = initialize;
+window.addEventListener('DOMContentLoaded', init);
